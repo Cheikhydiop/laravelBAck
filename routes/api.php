@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClientController;
+
 
 
 use Illuminate\Support\Facades\Route;
@@ -27,6 +29,9 @@ Route::prefix('v1')->group(function () {
     Route::post('/v1/articles/libelle', [ArticleController::class, 'findByLibelle']);
 
      Route::patch('/v1/articles/{id}', [ArticleController::class, 'update']);
+     Route::get('/v1/clients', [ClientController::class, 'index']);
+     Route::post('/v1/clients', [ClientController::class, 'store']);
+     Route::post('v1//clients/telephone', [ClientController::class, 'getByTelephone']);
 
 
 

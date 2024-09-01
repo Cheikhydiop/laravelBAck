@@ -41,7 +41,7 @@ return [
             'provider' => 'users',
         ],
         
-        'api' => [  // Ajoutez ceci
+        'api' => [  
             'driver' => 'passport',
             'provider' => 'users',
         ],

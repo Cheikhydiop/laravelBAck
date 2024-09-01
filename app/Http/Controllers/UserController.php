@@ -29,7 +29,7 @@ class UserController extends Controller
             $query->where('active', $activeFilter);
         }
 
-        // Appliquer le filtre sur 'role_id'
+        
         if ($request->has('role_id')) {
             $roleFilter = $request->query('role_id');
             $query->where('role_id', $roleFilter);
