@@ -13,4 +13,14 @@ trait RestResponseTrait
             'message' => $message,
         ],$codeStatut);
     }
+
+
+    public function sendError($message, $errors = [], $code = 404)
+    {
+        return response()->json([
+            'status' => $code,
+            'data' => $errors,
+            'message' => $message,
+        ], $code);
+    }
 }

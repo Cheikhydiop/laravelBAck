@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+
     Route::post('/stock', [ArticleController::class, 'updateStock']);
 
 });
@@ -21,6 +23,12 @@ Route::prefix('v1')->group(function () {
     Route::get('/v1/article', [ArticleController::class, 'verification']);
     Route::post('/v1/storeArticle', [ArticleController::class, 'storeArticle']);
     Route::get('/v1/users', [UserController::class, 'getUsers']);
+    Route::get('/v1/articles/{id}', [ArticleController::class, 'show']);
+    Route::post('/v1/articles/libelle', [ArticleController::class, 'findByLibelle']);
+
+     Route::patch('/v1/articles/{id}', [ArticleController::class, 'update']);
+
+
 
 
     

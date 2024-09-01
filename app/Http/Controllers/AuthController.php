@@ -40,9 +40,14 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // dd(User::find(1));
         $credentials = $request->only('login', 'password');
 
+//   dd($credentials);
         if (Auth::attempt($credentials)) {
+
+     
+
            $user = User::find(Auth::user()->id);
         $token = $user->createToken('appToken')->accessToken;
 
