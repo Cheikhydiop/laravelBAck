@@ -211,38 +211,65 @@ class AuthController extends Controller
     }
     
 
-    /**
-     * @OA\Get(
-     *     path="/api/v1/users",
-     *     summary="List all users",
-     *     tags={"Users"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Users retrieved successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array",
-     *                 @OA\Items(ref="#/components/schemas/UserResource")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Server error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string")
-     *         )
-     *     )
-     * )
-     */
-    public function index()
-    {
-        $users = User::all();
-        return $this->sendResponse(UserResource::collection($users), StatusResponseEnum::SUCCESS);
+/**
+ * @OA\Get(
+ *     path="/api/v1/users",
+ *     summary="List all users",
+ *     tags={"Users"},
+ *     @OA\Parameter(
+ *         name="active",
+ *         in="query",
+ *         description="Filter users by active status",
+ *         required=false,
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Parameter(
+ *         name="role_id",
+ *         in="query",
+ *         description="Filter users by role ID",
+ *         required=false,
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Users retrieved successfully",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="data", type="array",
+ *                 @OA\Items(ref="#/components/schemas/UserResource")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string")
+ *         )
+ *     )
+ * )
+ */
+public function index(Request $request)
+{
+    $query = User::query();
+    
+    // Apply filters if they exist
+    if ($request->has('active')) {
+        $query->where('active', $request->input('active'));
     }
 
+    if ($request->has('role_id')) {
+        $query->where('role_id', $request->input('role_id'));
+    }
+
+    $users = $query->get();
+
+    return response()->json([
+        'data' => UserResource::collection($users),
+    ], 200);
+}
     /**
      * @OA\Post(
-     *     path="/api/users",
+     *     path="/api/users/users",
      *     summary="Create a new user",
      *     tags={"Users"},
      *     @OA\RequestBody(

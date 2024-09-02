@@ -741,6 +741,26 @@
                 ],
                 "summary": "List all users",
                 "operationId": "35cf4f4dd7bf8ea4220abf33e5499782",
+                "parameters": [
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter users by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role_id",
+                        "in": "query",
+                        "description": "Filter users by role ID",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Users retrieved successfully",
@@ -778,13 +798,13 @@
                 }
             }
         },
-        "/api/users": {
+        "/api/users/users": {
             "post": {
                 "tags": [
                     "Users"
                 ],
                 "summary": "Create a new user",
-                "operationId": "3c267a0bbcc2d225301918603fda0674",
+                "operationId": "3ca4ee8398623a8e2a7a68fe440fc936",
                 "requestBody": {
                     "required": true,
                     "content": {
