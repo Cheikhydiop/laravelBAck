@@ -1,59 +1,82 @@
 <?php
 
+// use App\Http\Controllers\AuthController;
+// use App\Http\Controllers\ArticleController;
+// use App\Http\Controllers\UserController;
+// use App\Http\Controllers\ClientController;
+// use Illuminate\Support\Facades\Route;
+
+// // Routes non protégées
+// Route::prefix('v1')->group(function () {
+//     Route::post('/register', [AuthController::class, 'register']);
+// });
+// Route::post('/v1/login', [AuthController::class, 'login'])->name('login');
+// Route::get('/v1/login', [AuthController::class, 'login'])->name('login');
+
+
+// // Routes protégées par l'authentification
+// Route::middleware('auth:api')->prefix('v1')->group(function () {
+//     Route::post('/stock', [ArticleController::class, 'updateStock']);
+//     Route::get('/article', [ArticleController::class, 'verification']);
+//     Route::post('/storeArticle', [ArticleController::class, 'storeArticle']);
+//     Route::get('/users', [UserController::class, 'getUsers']);
+//     Route::post('/users', [UserController::class, 'store']);
+//     Route::get('/users', [UserController::class, 'index']);
+//     Route::get('/articles/{id}', [ArticleController::class, 'show']);
+//     Route::post('/articles/libelle', [ArticleController::class, 'findByLibelle']);
+//     Route::patch('/articles/{id}', [ArticleController::class, 'update']);
+//     Route::get('/clients', [ClientController::class, 'index']);
+//     Route::post('/clients', [ClientController::class, 'store']);
+//     Route::post('/clients/telephone', [ClientController::class, 'getByTelephone']);
+// });
+
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
-
-
+use App\Http\Controllers\TestController
+;
 
 use Illuminate\Support\Facades\Route;
 
+// Routes non protégées
 Route::prefix('v1')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
+    // Route::post('/login', [AuthController::class, 'login'])->name('login');
+    // Route::get('/login', [AuthController::class, 'login'])->name('login');
+    // Route pour le login POST
 
-    Route::post('/stock', [ArticleController::class, 'updateStock']);
+
+    Route::post('/logout', [AuthController::class, 'logout'])->name('login.get');
+
+
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/login', [AuthController::class, 'login'])->name('login.get');
 
 });
 
-
-// // Routes pour la gestion des articles
-// oute::prefix('v1/articles')->group(function () {
-//     Route::get('/', [ArticleController::class, 'index'])->name('articles.index'); // GET http://localhost:3000/api/v1/articles
-//     Route::get('/{id}', [ArticleController::class, 'show']); // GET http://localhost:3000/api/v1/articles/id
-    Route::get('/v1/article', [ArticleController::class, 'verification']);
-    Route::post('/v1/storeArticle', [ArticleController::class, 'storeArticle']);
-    Route::get('/v1/users', [UserController::class, 'getUsers']);
-    Route::get('/v1/articles/{id}', [ArticleController::class, 'show']);
-    Route::post('/v1/articles/libelle', [ArticleController::class, 'findByLibelle']);
-
-     Route::patch('/v1/articles/{id}', [ArticleController::class, 'update']);
-     Route::get('/v1/clients', [ClientController::class, 'index']);
-     Route::post('/v1/clients', [ClientController::class, 'store']);
-     Route::post('v1//clients/telephone', [ClientController::class, 'getByTelephone']);
-
-
-
-
+// Routes protégées par l'authentification
+Route::middleware('auth:api')->prefix('v1')->group(function () {
+    Route::post('/stock', [ArticleController::class, 'updateStock']);
+    Route::get('/article', [ArticleController::class, 'verification']);
+    Route::post('/storeArticle', [ArticleController::class, 'storeArticle']);
     
+    // Routes protégées par la politique d'administrateur
+    Route::middleware('can:viewAny,App\Models\User')->group(function () {
+        Route::get('/users', [UserController::class, 'getUsers']);
+        Route::post('/store', [UserController::class, 'store']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
+    });
 
+    Route::get('/articles/{id}', [ArticleController::class, 'show']);
+    Route::post('/articles/libelle', [ArticleController::class, 'findByLibelle']);
+    Route::patch('/articles/{id}', [ArticleController::class, 'update']);
+    Route::get('/articles/{id}', [ArticleController::class, 'update']);
 
-
-
-
-    
-
-
-
-//     Route::post('/', [ArticleController::class, 'store']); // POST http://localhost:3000/api/v1/articles
-//     Route::post('/libelle', [ArticleController::class, 'storeWithLibelle']); // POST http://localhost:3000/api/v1/articles/libelle
-//     Route::put('/stock', [ArticleController::class, 'updateStock']); // PUT http://localhost:3000/api/v1/articles/stock
-//     Route::patch('/{id}', [ArticleController::class, 'update']); // PATCH http://localhost:3000/api/v1/articles/id
-//     Route::delete('/{id}', [ArticleController::class, 'destroy']); // DELETE http://localhost:3000/api/v1/articles/id
-// });
-
-// // Routes pour l'authentification
-// Route::post('/login', [AuthController::class, 'login']); // POST http://localhost:3000/api/v1/login
-// Route::post('/register', [AuthController::class, 'register']); // POST http://localhost:3000/api/v1/register
-
+    Route::get('/clients', [ClientController::class, 'index']);
+    Route::post('/storeClient', [ClientController::class, 'store']);
+    Route::get('/clients/{telephone}', [ClientController::class, 'getByTelephone']);
+    Route::get('/clients/{id}/user', [ClientController::class, 'clientWithUser']);
+});
+Route::get('/test', [TestController::class, 'testEndpoint']);

@@ -12,13 +12,16 @@ class UserController extends Controller
     use RestResponseTrait;
 
     /**
-     * Display a listing of the resource.
+     * Affiche la liste des ressources.
      */
     public function getUsers(Request $request)
     {
+        // Vérifie l'autorisation pour voir tous les utilisateurs
+        $this->authorize('viewAny', User::class);
+
         // Récupère les paramètres de filtrage depuis la requête
         $filters = $request->query();
-        //Log::info('Request filters:', ['filters' => $filters]);
+        //Log::info('Filtres de la requête:', ['filters' => $filters]);
 
         // Filtrage basé sur 'active' et 'role_id'
         $query = User::query();
@@ -29,7 +32,7 @@ class UserController extends Controller
             $query->where('active', $activeFilter);
         }
 
-        
+        // Appliquer le filtre sur 'role_id'
         if ($request->has('role_id')) {
             $roleFilter = $request->query('role_id');
             $query->where('role_id', $roleFilter);
@@ -38,7 +41,7 @@ class UserController extends Controller
         // Exécute la requête
         $users = $query->get();
 
-        //Log::info('Filtered users:', ['users' => $users->toArray()]);
+        //Log::info('Utilisateurs filtrés:', ['users' => $users->toArray()]);
 
         return $this->sendResponse($users, StatusResponseEnum::SUCCESS, 'Liste des utilisateurs');
     }

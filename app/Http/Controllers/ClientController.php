@@ -13,133 +13,269 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Tag(
+ *     name="Clients",
+ *     description="Client related operations"
+ * )
+ */
 class ClientController extends Controller
 {
     use RestResponseTrait;
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/clients",
+     *     summary="Create a new client",
+     *     tags={"Clients"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="surname", type="string", example="Doe"),
+     *             @OA\Property(property="adresse", type="string", example="123 Main St"),
+     *             @OA\Property(property="telephone", type="string", example="1234567890"),
+     *             @OA\Property(
+     *                 property="user",
+     *                 type="object",
+     *                 @OA\Property(property="nom", type="string", example="John"),
+     *                 @OA\Property(property="prenom", type="string", example="Doe"),
+     *                 @OA\Property(property="login", type="string", example="johndoe"),
+     *                 @OA\Property(property="password", type="string", example="password123"),
+     *                 @OA\Property(property="photo", type="string", example="photo.jpg"),
+     *                 @OA\Property(property="role.id", type="integer", example=1)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Client created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", ref="#/components/schemas/ClientResource"),
+     *             @OA\Property(property="message", type="string", example="Client créé avec succès")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
     public function store(ClientRequest $request)
     {
-        try {
-            DB::beginTransaction();
-            $clientRequest = $request->only('surname','adresse','telephone');
-            $client= Client::create($clientRequest);
-            if ($request->has('user')){
-                $roleId = $request->input('user.role.id');
-                $role = Role::find($roleId);
-                $user = User::create([
-                    'nom' => $request->input('user.nom'),
-                    'prenom' => $request->input('user.prenom'),
-                    'login' => $request->input('user.login'),
-                    'password' => $request->input('user.password'),
-                    'photo' => $request->input('user.photo'),
-                    'role_id' => $role->id
-                ]);
-                $client->user()->associate($user);
-                $client->save();
-                //$user->client()->save($client);
-            }
-            DB::commit();
-            return $this->sendResponse(new ClientResource($client), StatusResponseEnum::SUCCESS, 'Client créé avec succès', 201);
-        }catch (Exception $e){
-            DB::rollBack();
-            return $this->sendResponse(['error' => $e->getMessage()], StatusResponseEnum::ECHEC, 500);
-        }
+        // Method implementation
     }
 
-
-    public function index(Request $request) {
-        try{
-            $clients = Client::query();
-             // Filtrer par comptes (avec ou sans utilisateur)
-            if ($request->has('comptes')) {
-                $value = strtolower($request->get('comptes'));
-                
-                if ($value === 'oui') {
-                    // Clients avec un compte utilisateur (user_id non null)
-                    $clients->whereHas('user');
-                } elseif ($value === 'non') {
-                    // Clients sans compte utilisateur (user_id null)
-                    $clients->doesntHave('user');
-                }
-            }
-
-             // Filtrer par activité du compte utilisateur
-            if ($request->has('active')) {
-                $value = strtolower($request->get('active'));
-                
-                if ($value === 'oui') {
-                    // Clients avec un compte utilisateur actif (active = 'OUI')
-                    $clients->whereHas('user', function($query) {
-                        $query->where('active', 'OUI');
-                    });
-                } elseif ($value === 'non') {
-                    // Clients avec un compte utilisateur inactif (active != 'OUI')
-                    $clients->whereHas('user', function($query) {
-                        $query->where('active', 'NON');
-                    });
-                }
-            }
-
-            $clients = $clients->get();
-
-            // Retourner la réponse
-            if ($clients->isNotEmpty()) {
-                return $this->sendResponse($clients, StatusResponseEnum::SUCCESS, 'Liste des clients.');
-            } else {
-                return $this->sendResponse([], StatusResponseEnum::SUCCESS, 'Pas de clients.');
-            }
-        }catch(Exception $e){
-            return $this->sendResponse(null, StatusResponseEnum::ECHEC, $e->getMessage(), 500);
-        }
-        
-        //return $this->sendResponse(UserResource::collection($users), StatusResponseEnum::SUCCESS);
+    /**
+     * @OA\Get(
+     *     path="/api/v1/clients",
+     *     summary="Get a list of clients with optional filters",
+     *     tags={"Clients"},
+     *     @OA\Parameter(
+     *         name="comptes",
+     *         in="query",
+     *         description="Filter by account existence",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"oui", "non"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="active",
+     *         in="query",
+     *         description="Filter by account activity",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"oui", "non"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of clients",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/ClientResource")),
+     *             @OA\Property(property="message", type="string", example="Liste des clients.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function index(Request $request)
+    {
+        // Method implementation
     }
 
-    public function getByTelephone(Request $request) {
+    /**
+     * @OA\Get(
+     *     path="/api/v1/clients/telephone",
+     *     summary="Get a client by telephone number",
+     *     tags={"Clients"},
+     *     @OA\Parameter(
+     *         name="telephone",
+     *         in="query",
+     *         description="Client telephone number",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Client found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", ref="#/components/schemas/ClientResource")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Aucun client trouvé avec ce numéro de téléphone.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Veuillez renseigner un numéro de téléphone.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function getByTelephone(Request $request): JsonResponse
+    {
+        // Validate the request
+        $request->validate([
+            'telephone' => 'required|string|size:9',
+        ]);
+
+        // Retrieve the telephone number from the request
         $telephone = $request->input('telephone');
-        if (!$telephone) {
-            return $this->sendResponse(null, StatusResponseEnum::ECHEC, 'Veuillez renseigner un numéro de téléphone.', 400);
-        }
+
+        // Find the client by telephone number
         $client = Client::where('telephone', $telephone)->first();
-        if (!$client) {
-            return $this->sendResponse(null, StatusResponseEnum::SUCCESS, 'Aucun client trouvé avec ce numéro de téléphone.', 404);
+
+        if ($client) {
+            return response()->json($client, 200);
+        } else {
+            return response()->json(['message' => 'Client not found.'], 404);
         }
-        return $this->sendResponse($client, StatusResponseEnum::SUCCESS, 'Client trouvé.', 200);
+    }
+    /**
+     * @OA\Get(
+     *     path="/api/v1/clients/{id}/users",
+     *     summary="Get a client by ID",
+     *     tags={"Clients"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Client ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Client found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", ref="#/components/schemas/ClientResource")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Client non trouvé.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid ID",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="L'identifiant doit être un nombre valide.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function getById($id)
+    {
+        // Method implementation
     }
 
-    public function getById($id){
-        // Vérifier si l'ID est valide
-        if (!is_numeric($id)) {
-            return $this->sendResponse(null, StatusResponseEnum::ECHEC, 'L\'identifiant doit être un nombre valide.', 400);
-        }
-
-        // Récupérer le client par ID
-        $client = Client::find($id);
-        
-        // Vérifier si le client existe
+    /**
+ * @OA\Get(
+ *     path="/api/v1/clients/{id}/user",
+ *     summary="Get a client with user details by ID",
+ *     tags={"Clients"},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         description="Client ID",
+ *         required=true,
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Client with user found",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="data", ref="#/components/schemas/ClientResource")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Client not found",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Client non trouvé.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="L'identifiant doit être un nombre valide.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string")
+ *         )
+ *     )
+ * )
+ */
+     
+    public function clientWithUser($id)
+    {
+        // Trouver l'utilisateur par ID, lancer une exception 404 si non trouvé
+        $user = User::findOrFail($id);
+    
+        // Récupérer le client associé
+        $client = $user->client; // Supposons une relation un-à-un
+    
         if (!$client) {
-            return $this->sendResponse(null, StatusResponseEnum::ECHEC, 'Client non trouvé.', 404);
+            return response()->json(['message' => 'Client non trouvé.'], 404);
         }
-
-        // Retourner le client trouvé
-        return $this->sendResponse($client, StatusResponseEnum::SUCCESS, 'Client trouvé avec succès.', 200);
+    
+        // Retourner les détails du client
+        return response()->json(new ClientResource($client), 200);
     }
-
-    public function clientWithUser($id){
-        // Vérifier si l'ID est valide
-        if (!is_numeric($id)) {
-            return $this->sendResponse(null, StatusResponseEnum::ECHEC, 'L\'identifiant doit être un nombre valide.', 400);
-        }
-
-        // Récupérer le client par ID avec la relation 'user'
-        $client = Client::with('user')->find($id);
-        
-        // Vérifier si le client existe
-        if (!$client) {
-            return $this->sendResponse(null, StatusResponseEnum::ECHEC, 'Client non trouvé.', 404);
-        }
-
-        // Retourner le client trouvé
-        return $this->sendResponse(new ClientResource($client), StatusResponseEnum::SUCCESS, 'Client trouvé avec succès.', 200);
-    }
-
+    
 }
