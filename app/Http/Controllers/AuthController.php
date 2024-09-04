@@ -1,26 +1,26 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Enums\StatusResponseEnum;
-use App\Http\Requests\LoginRequest;
+use App\Services\AuthentificationServiceInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\ClientResource;
 use App\Http\Resources\UserResource;
 use App\Models\Client;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Exception;
-use App\Traits\RestResponseTrait;
 
 class AuthController extends Controller
 {
-    use RestResponseTrait; 
+    protected $authService;
 
-    /**
+    public function __construct(AuthentificationServiceInterface $authService)
+    {
+        $this->authService = $authService;
+    }
+
+
+  /**
      * @OA\Post(
      *     path="/api/v1/register",
      *     summary="Register a new user",
@@ -87,6 +87,8 @@ class AuthController extends Controller
         }
     }
     
+    
+
     /**
      * @OA\Post(
      *     path="/api/v1/login",
@@ -123,54 +125,18 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function login(LoginRequest $request)
+    public function login(Request $request)
     {
         $credentials = $request->only('login', 'password');
         
-        if (Auth::attempt($credentials)) {
+        if ($this->authService->authenticate($credentials)) {
             /** @var \App\Models\User $user */
             $user = Auth::user();
             $token = $user->createToken('authToken')->accessToken;
             return response()->json(['token' => $token], 200);
         }
         
-        return $this->sendResponse(null, StatusResponseEnum::ECHEC, 'Login ou mot de passe incorrect', 401);
-    }
-    
-    /**
-     * @OA\Get(
-     *     path="/api/v1/profile",
-     *     summary="Get user profile",
-     *     tags={"Authentication"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Profile retrieved successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Unauthorized")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Server error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string")
-     *         )
-     *     )
-     * )
-     */
-    public function profile(Request $request)
-    {
-        // Logic to retrieve user profile would go here
-        // This typically involves getting the authenticated user and returning their details.
-        $user = $request->user();
-        return $this->sendResponse(new UserResource($user), StatusResponseEnum::SUCCESS);
+        return response()->json(['message' => 'Login ou mot de passe incorrect'], 401);
     }
 
     /**
@@ -182,7 +148,7 @@ class AuthController extends Controller
      *         response=200,
      *         description="Logout successful",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="You have been successfully logged out!")
+     *             @OA\Property(property="message", type="string", example="Logged out")
      *         )
      *     ),
      *     @OA\Response(
@@ -194,122 +160,9 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function logout(Request $request)
+    public function logout()
     {
-        // Vérifiez si l'utilisateur est authentifié
-        if (!$request->user()) {
-            return response()->json(['message' => 'Utilisateur non authentifié'], 401);
-        }
-    
-        // Révoquez le token de l'utilisateur
-        $request->user()->token()->revoke();
-    
-        // Retournez une réponse de succès
-        return response()->json([
-            'message' => 'Vous avez été déconnecté avec succès !'
-        ], 200);
-    }
-    
-
-/**
- * @OA\Get(
- *     path="/api/v1/users",
- *     summary="List all users",
- *     tags={"Users"},
- *     @OA\Parameter(
- *         name="active",
- *         in="query",
- *         description="Filter users by active status",
- *         required=false,
- *         @OA\Schema(type="string")
- *     ),
- *     @OA\Parameter(
- *         name="role_id",
- *         in="query",
- *         description="Filter users by role ID",
- *         required=false,
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Users retrieved successfully",
- *         @OA\JsonContent(
- *             @OA\Property(property="data", type="array",
- *                 @OA\Items(ref="#/components/schemas/UserResource")
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Server error",
- *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string")
- *         )
- *     )
- * )
- */
-public function index(Request $request)
-{
-    $query = User::query();
-    
-    // Apply filters if they exist
-    if ($request->has('active')) {
-        $query->where('active', $request->input('active'));
-    }
-
-    if ($request->has('role_id')) {
-        $query->where('role_id', $request->input('role_id'));
-    }
-
-    $users = $query->get();
-
-    return response()->json([
-        'data' => UserResource::collection($users),
-    ], 200);
-}
-    /**
-     * @OA\Post(
-     *     path="/api/users/users",
-     *     summary="Create a new user",
-     *     tags={"Users"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="nom", type="string"),
-     *             @OA\Property(property="prenom", type="string"),
-     *             @OA\Property(property="photo", type="string"),
-     *             @OA\Property(property="login", type="string"),
-     *             @OA\Property(property="password", type="string"),
-     *             @OA\Property(property="role_id", type="integer"),
-     *             @OA\Property(property="active", type="boolean")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="User created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Server error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string")
-     *         )
-     *     )
-     * )
-     */
-    public function store(Request $request)
-    {
-        try {
-            $data = $request->all();
-            $data['password'] = Hash::make($data['password']);
-            $user = User::create($data);
-            return $this->sendResponse(new UserResource($user), StatusResponseEnum::SUCCESS, 'Utilisateur créé avec succès', 201);
-        } catch (Exception $e) {
-            return $this->sendResponse(['error' => $e->getMessage()], StatusResponseEnum::ECHEC, 500);
-        }
+        $this->authService->logout();
+        return response()->json(['message' => 'Vous avez été déconnecté avec succès !'], 200);
     }
 }

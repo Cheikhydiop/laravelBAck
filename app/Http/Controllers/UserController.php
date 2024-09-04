@@ -1,15 +1,17 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Traits\RestResponseTrait;
-use App\Enums\StatusResponseEnum;
-use Illuminate\Http\Request;
+use App\Http\Middleware\ApiResponseMiddleware;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    use RestResponseTrait;
+    public function __construct()
+    {
+        // Appliquer le middleware ApiResponseMiddleware
+        $this->middleware(ApiResponseMiddleware::class);
+    }
 
     /**
      * Affiche la liste des ressources.
@@ -21,7 +23,6 @@ class UserController extends Controller
 
         // Récupère les paramètres de filtrage depuis la requête
         $filters = $request->query();
-        //Log::info('Filtres de la requête:', ['filters' => $filters]);
 
         // Filtrage basé sur 'active' et 'role_id'
         $query = User::query();
@@ -41,8 +42,7 @@ class UserController extends Controller
         // Exécute la requête
         $users = $query->get();
 
-        //Log::info('Utilisateurs filtrés:', ['users' => $users->toArray()]);
-
-        return $this->sendResponse($users, StatusResponseEnum::SUCCESS, 'Liste des utilisateurs');
+        // Retourner les données brutes
+        return $users;
     }
 }

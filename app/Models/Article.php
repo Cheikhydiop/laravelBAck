@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Article extends Model
 {
-    use HasFactory;
+    protected $fillable = ['libelle', 'quantite'];
 
-    protected $fillable = ['libelle', 'quantite', 'prix',"reference"];
-
-    protected $hidden = ['created_at', 'updated_at'];
-
-    public function dettes()
+    public function scopeDisponible($query)
     {
-        return $this->belongsToMany(Dette::class, 'article_dette')->withPivot('qteVente', 'prixVente');
+        return $query->where('quantite', '>', 0);
+    }
+
+    public function scopeNonDisponible($query)
+    {
+        return $query->where('quantite', '=', 0);
     }
 }

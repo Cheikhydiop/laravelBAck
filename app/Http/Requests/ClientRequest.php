@@ -28,6 +28,7 @@ class ClientRequest extends FormRequest
         $rules = [
             'surname' => ['required', 'string', 'max:255','unique:clients,surname'],
             'telephone' => ['required', 'unique:clients,telephone', new TelephoneRule()],
+            'email' => 'required|email', // Ajoutez cette ligne pour valider l'email
 
              // Validation conditionnelle si un utilisateur doit être créé
             'user' => ['sometimes', 'array'],

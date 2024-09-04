@@ -52,7 +52,7 @@ Route::prefix('v1')->group(function () {
 
 
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get('/login', [AuthController::class, 'login'])->name('login.get');
+// Route::get('/login', [AuthController::class, 'login'])->name('login.get');
 
 });
 
@@ -76,6 +76,8 @@ Route::middleware('auth:api')->prefix('v1')->group(function () {
 
     Route::get('/clients', [ClientController::class, 'index']);
     Route::post('/storeClient', [ClientController::class, 'store']);
+    Route::get('/Clients/{id}', [ClientController::class, 'show']);
+
     Route::get('/clients/{telephone}', [ClientController::class, 'getByTelephone']);
     Route::get('/clients/{id}/user', [ClientController::class, 'clientWithUser']);
 });

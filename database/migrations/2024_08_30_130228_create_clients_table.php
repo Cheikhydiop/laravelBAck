@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('telephone',9)->unique();
             $table->text('adresse')->nullable();
             $table->foreignId('user_id')->nullable()->unique()->constrained()->onDelete('set null');
+            
             $table->timestamps();
         });
     }
