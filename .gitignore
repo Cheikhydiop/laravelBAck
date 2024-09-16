@@ -17,3 +17,5 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+# Ignorer les fichiers sensibles
+storage/firebase/firebase-credentials.json
